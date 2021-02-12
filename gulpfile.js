@@ -1,10 +1,10 @@
 /******************************************************************************/
-/*                         Gulp HTML SCSS Boilerplate                         */
-/*             A boilerplate for building web projects with Gulp.             */
-/*                             https://gulpjs.com/                            */
+/*                            Gulp-Web-Boilerplate                            */
+/*        A boilerplate for building web  projects with Gulp and scss.        */
+/*                 https://gulpjs.com/ https://sass-lang.com/                 */
 /*                                                                            */
 /* Copyright (c) 2021                                       Ivan Semenkov     */
-/* https://github.com/isemenkov/gulphtmlscssboilerplate     ivan@semenkov.pro */
+/* https://github.com/isemenkov/gulp-web-boilerplate        ivan@semenkov.pro */
 /*                                                          Ukraine           */
 /******************************************************************************/
 /*                                                                            */
@@ -245,6 +245,15 @@ const settings = {
       /* Path to images destination folder. */
       destPath: './dist/images/',
     },
+
+    /* Resources process. */
+    resources: {
+      sourcePath: [
+        './app/resources/**',
+      ],
+
+      destPath: './dist/resources/',
+    },
   },
 };
 
@@ -468,6 +477,12 @@ const buildProcessImages = () => {
     .pipe(dest(settings.build.images.destPath));
 };
 
+/* Process resource files. */
+const buildProcessResource = () => {
+  return src(settings.build.resources.sourcePath)
+    .pipe(dest(settings.build.resources.destPath));
+}
+
 /* === Exports === */
 
 /* Start developer server and watching source files. */
@@ -482,4 +497,4 @@ exports.clean = series(devClean);
 exports.build = series(buildClean, devCreateSvgSprite,
   parallel(devProcessScss, devProcessVendorScss), 
   parallel(buildProcessHtml, buildProcessCss, buildProcessScript,
-    buildProcessImages));
+    buildProcessImages, buildProcessResource));
