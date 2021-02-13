@@ -1,0 +1,18 @@
+@mixin for-iphone-5 {
+  @media (max-width: 320px) { @content; }
+}
+@mixin for-portrait-phone {
+  @media (max-width: 480px) { @content; }
+}
+@mixin for-landscape-phone-and-tablet-portrait {
+  @media (max-width: 767px) { @content; }
+}
+@mixin for-portrait-tablet-and-small-desktop {
+  @media (min-width: 768px) and (max-width: 991px) { @content; }
+}
+@mixin for-landscape-tablet-and-desktop {
+  @media (min-width: 992px) and (max-width: 1199px) { @content; }
+}
+@mixin for-big-desktop {
+  @media (min-width: 1200px) { @content; }
+}
