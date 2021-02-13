@@ -72,11 +72,15 @@ const settings = {
 
         /* Path to vendor source folder. */
         sourcePath: [
-          './app/scss/vendor/**/*.scss',
+          './app/vendors/**/*.css',
+          './app/vendors/**/*.scss',
         ],
 
         /* Path to vendor destination folder. */
-        destPath: './app/css/vendor/',
+        destPath: './app/css/',
+
+        /* Output file name. */
+        filename: 'vendor.css',
       },
     },
 
@@ -97,8 +101,14 @@ const settings = {
 
         /* Path to vendor source folder. */
         sourcePath: [
-          './app/js/vendor/**/*.js',
+          './app/vendors/**/*.js',
         ],
+
+        /* Path to vendor destination folder. */
+        destPath: './app/js/',
+
+        /* Output file name. */
+        filename: 'vendor.js',
       },
     },
 
@@ -205,21 +215,6 @@ const settings = {
 
       /* Output css file name. */
       filename: 'main.css',
-
-      /* Vendors options. */
-      vendors: {
-
-        /* Add vendors styles to main stylesheet. */
-        integrateVendors: false,
-
-        /* Path to vendor css source folder. */
-        sourcePath: [
-          './app/css/vendor/*.css',
-        ],      
-
-        /* Output vendor css file name. */
-        filename: 'vendor.css',
-      },
     },
 
     /* JS file process. */
@@ -407,6 +402,7 @@ const devProcessScss = () => {
 const devProcessVendorScss = () => {
   return src(settings.dev.scss.vendors.sourcePath)
     .pipe(gulpIf(settings.dev.scss.createSourceMap, sourcemaps.init()))
+    .pipe(concat(settings.dev.scss.vendors.filename))
     .pipe(sass({
       outputStyle: 'expanded',
     }).on('error', notify.onError()))
@@ -430,7 +426,9 @@ const devProcessScripts = () => {
 const devProcessVendorsScripts = () => {
   return src(settings.dev.scripts.vendors.sourcePath)
     .pipe(gulpIf(settings.dev.scripts.createSourceMap, sourcemaps.init()))
+    .pipe(concat(settings.dev.scripts.vendors.filename))
     .pipe(gulpIf(settings.dev.scripts.createSourceMap, sourcemaps.write('.')))
+    .pipe(dest(settings.dev.scripts.vendors.destPath))
     .pipe(browserSync.stream());
 };
 
@@ -518,24 +516,14 @@ const buildProcessCss = () => {
     properties.format = 'beautify';
   }
   
-  let sourcePath = settings.build.css.vendors.sourcePath
-    .concat(settings.build.css.sourcePath);
-  
-  return src(sourcePath)
-    .pipe(gulpIf(settings.build.css.vendors.integrateVendors, 
-      concat(settings.build.css.filename)))
+  return src(settings.build.css.sourcePath)
     .pipe(cleanCss(properties))
     .pipe(dest(settings.build.css.destPath));
 };
 
 /* Process js files. */
 const buildProcessScript = () => {
-  let sourcePath = settings.build.scripts.vendors.sourcePath
-    .concat(settings.build.scripts.sourcePath);
-
-  return src(sourcePath)
-    .pipe(gulpIf(settings.build.scripts.vendors.integrateVendors,
-      concat(settings.build.scripts.filename)))
+  return src(settings.build.scripts.sourcePath)
     .pipe(gulpIf(settings.build.scripts.style === 'compressed',
       uglify().on('error', notify.onError())))
     .pipe(dest(settings.build.scripts.destPath));
@@ -563,8 +551,9 @@ const buildProcessResource = () => {
 /* === Exports === */
 
 /* Start developer server and watching source files. */
-exports.default = series(parallel(devProcessHtml, devProcessScss,
-  devProcessVendorScss, devProcessScripts, devProcessVendorsScripts),
+exports.default = series(
+  parallel(devProcessHtml, devProcessScss, devProcessVendorScss, 
+    devProcessScripts, devProcessVendorsScripts),
   devWatchingChanges);
 
 /* Remove development generated files. */
@@ -575,6 +564,6 @@ exports.build = series(
   buildClean, devProcessFontWoff, devProcessFontWoff2, 
     devProcessFontEot,
   parallel(devProcessHtml, devCreateSvgSprite, devProcessScss, 
-    devProcessVendorScss), 
+    devProcessVendorScss, devProcessVendorsScripts),
   parallel(buildProcessHtml, buildProcessCss, buildProcessScript, 
     buildProcessImages, buildProcessResource, buildProcessFonts));
