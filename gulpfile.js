@@ -123,6 +123,31 @@ const settings = {
         filename: 'sprite.svg',
       }
     },
+
+    /* Font process. */
+    fonts: {
+
+      /* Fonts formats. */
+      formats: {
+        
+        /* Create woff font. */
+        woff: true,
+
+        /* Create woff2 font. */
+        woff2: true,
+
+        /* Create eot font. */
+        eot: false,
+      },
+
+      /* Path to fonts source folder. */
+      sourcePath: [
+        './app/fonts/ttf/**/*.ttf',
+      ],
+
+      /* Path to fonts destination folder. */
+      destPath: './app/fonts/',
+    },
   },
 
   /* Build enviroment settings. */
@@ -237,7 +262,7 @@ const settings = {
       sourcePath: [
         './app/images/*.jpg',
         './app/images/*.jpeg',
-        './app/iamges/*.png',
+        './app/images/*.png',
         './app/images/*.svg',
         './app/images/*.gif',
       ],
@@ -248,18 +273,31 @@ const settings = {
 
     /* Resources process. */
     resources: {
+
+      /* Path to resources source folder. */
       sourcePath: [
         './app/resources/**',
       ],
 
+      /* Path to resources destination folder. */
       destPath: './dist/resources/',
+    },
+
+    /* Font process. */
+    fonts: {
+
+      /* Path to fonts source folder. */
+      sourcePath: [
+        './app/fonts/*.woff',
+        './app/fonts/*.woff2',
+        './app/fonts/*.eot',
+      ],
+
+      /* Path to resources destination folder. */
+      destPath: './dist/fonts/',
     },
   },
 };
-
-/* ===  === */
-
-const { readFileSync } = require('fs');
 
 /* The streaming build system. */
 const { src, dest, parallel, series, watch } = require('gulp');
@@ -311,6 +349,15 @@ const imagemin         = require('gulp-imagemin');
 
 /* Concatenate multiple files. */
 const concat        = require('gulp-concat');
+
+/* Create a WOFF font from a TTF one. */
+const ttf2woff      = require('gulp-ttf2woff');
+
+/* Create a WOFF2 font from a TTF font. */
+const ttf2woff2     = require('gulp-ttf2woff2');
+
+/* Create an EOT font from a TTF one. */
+const ttf2eot       = require('gulp-ttf2eot');
 
 /* === Development process tasks === */
 
@@ -402,6 +449,28 @@ const devCreateSvgSprite = () => {
     .pipe(dest(settings.dev.images.svg.destPath));
 };
 
+/* Process fonts. */
+const devProcessFontWoff = () => {
+  return src(settings.dev.fonts.sourcePath)
+    .pipe(gulpIf(settings.dev.fonts.formats.woff, ttf2woff()))
+    .pipe(gulpIf(settings.dev.fonts.formats.woff, 
+      dest(settings.dev.fonts.destPath)));
+};
+
+const devProcessFontWoff2 = () => {
+  return src(settings.dev.fonts.sourcePath)
+    .pipe(gulpIf(settings.dev.fonts.formats.woff2, ttf2woff2()))
+    .pipe(gulpIf(settings.dev.fonts.formats.woff2, 
+      dest(settings.dev.fonts.destPath)));
+};
+
+const devProcessFontEot = () => {
+  return src(settings.dev.fonts.sourcePath)
+    .pipe(gulpIf(settings.dev.fonts.formats.eot, ttf2eot()))
+    .pipe(gulpIf(settings.dev.fonts.formats.eot, 
+      dest(settings.dev.fonts.destPath)));
+};
+
 /* Files changes watching. */
 const devWatchingChanges = () => {
   browserSync.init({
@@ -416,6 +485,8 @@ const devWatchingChanges = () => {
   watch(settings.dev.scripts.sourcePath, devProcessScripts);
   watch(settings.dev.scripts.vendors.sourcePath, devProcessVendorsScripts);
   watch(settings.dev.images.svg.sorcePath, devCreateSvgSprite);
+  watch(settings.dev.fonts.sourcePath, series(devProcessFontWoff, 
+    devProcessFontWoff2, devProcessFontEot));
 };
 
 /* === Build process tasks === */
@@ -477,6 +548,12 @@ const buildProcessImages = () => {
     .pipe(dest(settings.build.images.destPath));
 };
 
+/* Process fonts files. */
+const buildProcessFonts = () => {
+  return src(settings.build.fonts.sourcePath)
+    .pipe(dest(settings.build.fonts.destPath));
+};
+
 /* Process resource files. */
 const buildProcessResource = () => {
   return src(settings.build.resources.sourcePath)
@@ -494,7 +571,10 @@ exports.default = series(parallel(devProcessHtml, devProcessScss,
 exports.clean = series(devClean);
 
 /* Generate dist files. */
-exports.build = series(buildClean, devCreateSvgSprite,
-  parallel(devProcessScss, devProcessVendorScss), 
-  parallel(buildProcessHtml, buildProcessCss, buildProcessScript,
-    buildProcessImages, buildProcessResource));
+exports.build = series(
+  buildClean, devProcessFontWoff, devProcessFontWoff2, 
+    devProcessFontEot,
+  parallel(devProcessHtml, devCreateSvgSprite, devProcessScss, 
+    devProcessVendorScss), 
+  parallel(buildProcessHtml, buildProcessCss, buildProcessScript, 
+    buildProcessImages, buildProcessResource, buildProcessFonts));
