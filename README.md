@@ -7,7 +7,7 @@ A boilerplate for building web projects with [Gulp](https://gulpjs.com/) and [sc
   * [Requirements](#requirements)
   * [Installation](#installation)
   * [Usage](#usage)
-  * [Gulp tasks](#gulp tasks)
+  * [Gulp tasks](#gulp-tasks)
 
 ### Requirements
 

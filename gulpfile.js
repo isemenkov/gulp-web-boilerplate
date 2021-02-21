@@ -44,7 +44,7 @@ const settings = {
     html: {
       /* Path to html source folder. */
       sourcePath: [
-        './app/html/*.html',
+        './app/html/**/*.html',
       ],
 
       /* Path to html destination folder. */
