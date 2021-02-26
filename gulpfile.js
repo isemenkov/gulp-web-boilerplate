@@ -438,8 +438,8 @@ const devCreateSvgSprite = () => {
     .pipe(gulpIf(settings.dev.images.svg.createSprite, svgSprite({
       dest: settings.dev.images.svg.destPath,
       mode: {
-        stack: {
-          dest: '',
+        defs: {
+          dest: '.',
           sprite: settings.dev.images.svg.filename,
         }
       },
